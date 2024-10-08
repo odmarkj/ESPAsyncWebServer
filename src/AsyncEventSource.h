@@ -57,6 +57,7 @@ class AsyncEventSource;
 class AsyncEventSourceResponse;
 class AsyncEventSourceClient;
 typedef std::function<void(AsyncEventSourceClient *client)> ArEventHandlerFunction;
+typedef std::function<void(AsyncEventSource *source, AsyncEventSourceClient *client)> ArEventHandlerFunction2;
 
 class AsyncEventSourceMessage {
   private:
@@ -88,6 +89,7 @@ class AsyncEventSourceClient {
 #endif // ESP32
     LinkedList<AsyncEventSourceMessage *> _messageQueue;
     void _queueMessage(AsyncEventSourceMessage *dataMessage);
+    bool _tryQueueMessage(AsyncEventSourceMessage *dataMessage);
     void _runQueue();
 
   public:
@@ -98,6 +100,7 @@ class AsyncEventSourceClient {
     AsyncClient* client(){ return _client; }
     void close();
     void write(const char * message, size_t len);
+    bool try_write(const char * message, size_t len);
     void send(const char *message, const char *event=NULL, uint32_t id=0, uint32_t reconnect=0);
     bool connected() const { return (_client != NULL) && _client->connected(); }
     uint32_t lastId() const { return _lastId; }
@@ -115,6 +118,8 @@ class AsyncEventSource: public AsyncWebHandler {
     String _url;
     LinkedList<AsyncEventSourceClient *> _clients;
     ArEventHandlerFunction _connectcb;
+    ArEventHandlerFunction2 _connectcb2;
+    ArEventHandlerFunction2 _disconnectcb;
   public:
     AsyncEventSource(const String& url);
     ~AsyncEventSource();
@@ -122,7 +127,10 @@ class AsyncEventSource: public AsyncWebHandler {
     const char * url() const { return _url.c_str(); }
     void close();
     void onConnect(ArEventHandlerFunction cb);
+    void onConnect(ArEventHandlerFunction2 cb);
+    void onDisconnect(ArEventHandlerFunction2 cb);
     void send(const char *message, const char *event=NULL, uint32_t id=0, uint32_t reconnect=0);
+    bool try_send(const char *message, const char *event=NULL, uint32_t id=0, uint32_t reconnect=0);
     size_t count() const; //number clinets connected
     size_t  avgPacketsWaiting() const;
 
