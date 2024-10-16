@@ -10,7 +10,8 @@ permissions:
   pull-requests: read
 
 jobs:
-  update_release_draft:
+  release-drafter:
+    name: Release Drafter
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v6
@@ -22,7 +23,7 @@ jobs:
 
       - name: Set library.json version
         run: |
-          sed -i "s/\"version\": .*/\"version\": \"${{ steps.drafter.outputs.resolved_version }}\"/g" library.json
+          sed -i "s/\"version\": .*/\"version\": \"${{ steps.drafter.outputs.resolved_version }}\",/g" library.json
 
       - name: Commit changes
         run: |
